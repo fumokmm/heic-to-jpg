@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Convert every HEIC image located alongside this script into a JPEG file."""
+"""Convert HEIC images in a target directory to JPEG files.
+
+By default, operates on the current working directory. An optional directory
+argument can be provided to convert files in a specific folder.
+"""
 
 from __future__ import annotations
 
 import sys
+import argparse
 from pathlib import Path
 
 from PIL import Image
@@ -37,8 +42,23 @@ def convert_images(directory: Path) -> None:
             print(f"Converted {heic_path.name} -> {jpg_path.name}")
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Convert .heic/.HEIC files in a directory to .jpg"
+    )
+    parser.add_argument(
+        "directory",
+        nargs="?",
+        default=Path.cwd(),
+        help="Target directory (default: current working directory)",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
-    convert_images(Path(__file__).resolve().parent)
+    args = parse_args()
+    target_dir = Path(args.directory).resolve()
+    convert_images(target_dir)
 
 
 if __name__ == "__main__":
