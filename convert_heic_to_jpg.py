@@ -15,7 +15,7 @@ from PIL import Image
 from pillow_heif import register_heif_opener
 
 
-def convert_images(directory: Path) -> None:
+def convert_images(directory: Path, quality: int = 95) -> None:
     """Convert all HEIC files in *directory* to JPEG with the same stem."""
     register_heif_opener()
 
@@ -29,13 +29,15 @@ def convert_images(directory: Path) -> None:
         print("No HEIC files found.")
         return
 
+    print(f"Converting with JPEG quality: {quality}")
+
     for heic_path in heic_files:
         jpg_path = heic_path.with_suffix(".jpg")
 
         try:
             with Image.open(heic_path) as image:
                 rgb_image = image.convert("RGB")
-                rgb_image.save(jpg_path, format="JPEG", quality=95)
+                rgb_image.save(jpg_path, format="JPEG", quality=quality)
         except Exception as exc:  # pylint: disable=broad-exception-caught
             print(f"Failed to convert {heic_path.name}: {exc}", file=sys.stderr)
         else:
@@ -52,13 +54,21 @@ def parse_args() -> argparse.Namespace:
         default=Path.cwd(),
         help="Target directory (default: current working directory)",
     )
+    parser.add_argument(
+        "-q", "--quality",
+        type=int,
+        default=95,
+        choices=range(1, 101),
+        metavar="1-100",
+        help="JPEG quality (1-100, default: 95)",
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     args = parse_args()
     target_dir = Path(args.directory).resolve()
-    convert_images(target_dir)
+    convert_images(target_dir, args.quality)
 
 
 if __name__ == "__main__":
